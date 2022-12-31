@@ -5,9 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using System.Drawing;
-using Emgu.CV;
-using Emgu.CV.CvEnum;
-using Emgu.CV.Features2D;
 using System.Globalization;
 
 namespace PH

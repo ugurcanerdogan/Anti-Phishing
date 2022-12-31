@@ -101,7 +101,6 @@ namespace PH
                 imgCount++;
                 string imgLabel = Helpers.GetLabel(imgPath);
                 labelList.Add(imgLabel);
-                Console.WriteLine("1dede1");
                 Bitmap bitmapImg = new Bitmap(imgPath);
                 List<SpeededUpRobustFeaturePoint> descriptors = surf.ProcessImage(bitmapImg);
                 double[][] surfTable = descriptors.Apply(d => d.Descriptor);
@@ -110,7 +109,6 @@ namespace PH
                 foreach (double[] item in surfTable) //vstack
                 {
                     vStackedDescList.Add(item);
-                    Console.WriteLine("2dede2");
                 }
             }
 
@@ -120,7 +118,6 @@ namespace PH
             int labelCtr = 0;
             for (int i = 0; i < allFeaturesBoVW.GetLength(0); i++)
             {
-                Console.WriteLine("3dede3");
                 string fileName = @"pre-computed\precomputed_SURF_" + folderType + ".csv";
                 Helpers.SaveArrayAsCSV(allFeaturesBoVW.GetRow(i), fileName, labelList[labelCtr]);
                 labelCtr++;
@@ -137,9 +134,7 @@ namespace PH
         public KMeansClusterCollection clusterDescriptors(double[][] input)
         {
             // Compute and retrieve the data centroids
-            Console.WriteLine("cluster started");
             KMeansClusterCollection clusters = kmeans.Learn(input);
-            Console.WriteLine("cluster learned");
             // Use the centroids to parition all the data
             // // // int[] labels = clusters.Decide(input);
             return clusters;
@@ -148,7 +143,6 @@ namespace PH
 
         public double[,] extractFeatures(KMeansClusterCollection kmeans, List<double[][]> descriptors, int imageCount)
         {
-            Console.WriteLine("extract started");
             double[,] totalFeatures = new double[imageCount,400];
 
             for (int i = 0; i < imageCount; i++)
@@ -158,7 +152,6 @@ namespace PH
                     var feature = descriptors[i][j];
                     int idx = kmeans.Decide(feature);
                     totalFeatures[i, idx] += 1;
-                    Console.WriteLine("decided");
                 }
             }
             return totalFeatures;

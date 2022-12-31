@@ -2,9 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Drawing;
-using Emgu.CV;
-using Emgu.CV.CvEnum;
-using Emgu.CV.Features2D;
 using System.Globalization;
 using System.Linq;
 using Accord.Statistics.Filters;
@@ -40,17 +37,18 @@ namespace PH
             Descriptors descriptors = new Descriptors();
 
             // FCTH 
-            //List<double[]> fcthTrainValues = descriptors.computeFCTH(trainImagePathsAndLabels.Item1, "train");
-            //List<double[]> fcthValValues = descriptors.computeFCTH(validImagePathsAndLabels.Item1, "val");
+            List<double[]> fcthTrainValues = descriptors.ComputeFCTHandSave(trainImagePathsAndLabels.Item1, "train");
+            List<double[]> fcthValValues = descriptors.ComputeFCTHandSave(validImagePathsAndLabels.Item1, "val");
 
             // CEDD 
-            //List<double[]> ceddTrainValues = descriptors.computeCEDD(trainImagePathsAndLabels.Item1, "train");
-            //List<double[]> ceddValValues = descriptors.computeCEDD(validImagePathsAndLabels.Item1, "val");
+            List<double[]> ceddTrainValues = descriptors.ComputeCEDDandSave(trainImagePathsAndLabels.Item1, "train");
+            List<double[]> ceddValValues = descriptors.ComputeCEDDandSave(validImagePathsAndLabels.Item1, "val");
 
             // SURF 
             double[,] surfTrainValues = descriptors.ComputeSURFandSave(trainImagePathsAndLabels.Item1, "train");
-            //double[,] surfValValues = descriptors.ComputeSURFandSave(validImagePathsAndLabels.Item1, "val");
+            double[,] surfValValues = descriptors.ComputeSURFandSave(validImagePathsAndLabels.Item1, "val");
 
+            Console.WriteLine("---");
             Console.ReadLine();
         }
     }
