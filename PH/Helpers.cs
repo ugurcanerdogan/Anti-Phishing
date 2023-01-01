@@ -11,6 +11,35 @@ namespace PH
 {
     public class Helpers
     {
+        public static void PrintMainPath(string mainPath)
+        {
+            string[] tokens = mainPath.Split(new[] { @"\" }, StringSplitOptions.None);
+            string pathToRead = tokens[tokens.Length - 1];
+            Console.WriteLine("Reading " + pathToRead + "...");
+        }
+        public static string CheckMode(string mode)
+        {
+            if (!(mode.Equals("precompute") || mode.Equals("trainval")))
+            {
+                throw new Exception("Please enter a valid program mode (either 'precompute' or 'trainval').");
+            }
+            else
+            {
+                return mode;
+            }
+        }
+
+        public static string CheckDirectory(string mainPath)
+        {
+            if (Directory.Exists(mainPath))
+            {
+                return mainPath;
+            }
+            else
+            {
+                throw new Exception("Please enter a valid directory/file path.");
+            }
+        }
 
         public static Tuple<List<string>, List<string>> ProcessDirectory(string path, string folderType)
         {
@@ -41,48 +70,39 @@ namespace PH
             return Tuple.Create(imagePaths, imageLabels);
         }
 
-        public static List<string> GetLabelList(List<string> pathList)
+        public static void SaveArrayAsCSV(Array imgDescArray, string csvFileName, string label)
         {
-            Console.WriteLine("-----------------------------------");
-            List<string> labels = new List<string>();
-            foreach (string path in pathList)
+            using (StreamWriter file = new StreamWriter(csvFileName, true))
             {
-                labels.Add(GetLabel(path));
-
-                //Console.WriteLine(GetLabel(path)); 
-                //Console.WriteLine("Processed file '{0}'.", path);
-            }
-
-            return labels;
-        }
-
-        public static string GetLabel(string fullPath)
-        {
-            string[] tokens = fullPath.Split(new[] { @"\" }, StringSplitOptions.None);
-            return tokens[tokens.Length - 2];
-        }
-
-        public static string CheckDirectory(string mainPath)
-        {
-            if (Directory.Exists(mainPath))
-            {
-                return mainPath;
-            }
-            else
-            {
-                throw new Exception("Please enter a valid directory/file path.");
+                WriteArrayToCSV(imgDescArray, file, label);
             }
         }
 
-        public static string CheckMode(string mode)
+        private static void WriteArrayToCSV(Array arr1, TextWriter file, string label)
         {
-            if (!(mode.Equals("precompute") || mode.Equals("trainval")))
+            foreach (var item in arr1)
             {
-                throw new Exception("Please enter a valid program mode (either 'precompute' or 'trainval').");
+                double doubleItem = (double)item;
+                string stringItem = doubleItem.ToString(new CultureInfo("en-us", false));
+                file.Write(stringItem + ",");
             }
-            else
+            file.Write(label);
+            file.Write(Environment.NewLine);
+        }
+
+        public static void WriteHeaderToCSV(string filePath, int featureNumber)
+        {
+            string headerText = "f1";
+            for (int i = 2; i < featureNumber + 1; i++)
             {
-                return mode;
+                headerText += ",f" + i;
+            }
+            headerText += ",label";
+
+            using (StreamWriter file = new StreamWriter(filePath, true))
+            {
+                file.Write(headerText);
+                file.Write(Environment.NewLine);
             }
         }
 
@@ -99,7 +119,8 @@ namespace PH
                 string[] columns = line.Split(',');
                 foreach (string column in columns)
                 {
-                    try {
+                    try
+                    {
                         columnList.Add(Convert.ToDouble(column));
                     }
                     catch (FormatException fe)
@@ -112,81 +133,24 @@ namespace PH
             return Tuple.Create(sampleList, labelList);
         }
 
-        public static void SaveSurfArrayAsCSV(Array imgDescArray, string csvFileName)
+        public static List<string> GetLabelList(List<string> pathList)
         {
-            using (StreamWriter file = new StreamWriter(csvFileName, true))
+            Console.WriteLine("-----------------------------------");
+            List<string> labels = new List<string>();
+            foreach (string path in pathList)
             {
-                WriteSurfArrayToCSV(imgDescArray, file);
+                labels.Add(GetLabel(path));
+
+                //Console.WriteLine(GetLabel(path)); 
+                //Console.WriteLine("Processed file '{0}'.", path);
             }
+
+            return labels;
         }
-
-        private static void WriteSurfArrayToCSV(Array arr1, TextWriter file)
+        public static string GetLabel(string fullPath)
         {
-            string stringItem = "";
-            foreach (var item in arr1)
-            {
-                //if (item is Array)
-                //{
-                //    writeArrayToCSV(item as Array, file, label);
-                //    file.Write(Environment.NewLine);
-                //}
-                //else
-                //{
-                //    double doubleItem = (double)item;
-                //    string stringItem = doubleItem.ToString(new CultureInfo("en-us", false));
-
-                //    file.Write(stringItem + ",");
-                //}
-
-                double doubleItem = (double)item;
-                stringItem += doubleItem.ToString(new CultureInfo("en-us", false)) + ",";
-
-
-            }
-            stringItem = stringItem.Substring(0, stringItem.Length-1);
-            file.Write(stringItem);
-            file.Write(Environment.NewLine);
-        }
-
-        public static void SaveArrayAsCSV(Array imgDescArray, string csvFileName, string label)
-        {
-            using (StreamWriter file = new StreamWriter(csvFileName, true))
-            {
-                WriteArrayToCSV(imgDescArray, file, label);
-            }
-        }
-
-        private static void WriteArrayToCSV(Array arr1, TextWriter file, string label)
-        {
-            foreach (var item in arr1)
-            {
-                //if (item is Array)
-                //{
-                //    writeArrayToCSV(item as Array, file, label);
-                //    file.Write(Environment.NewLine);
-                //}
-                //else
-                //{
-                //    double doubleItem = (double)item;
-                //    string stringItem = doubleItem.ToString(new CultureInfo("en-us", false));
-
-                //    file.Write(stringItem + ",");
-                //}
-
-                double doubleItem = (double)item;
-                string stringItem = doubleItem.ToString(new CultureInfo("en-us", false));
-
-                file.Write(stringItem + ",");
-            }
-            file.Write(label);
-            file.Write(Environment.NewLine);
-        }
-
-        public static void PrintMainPath(string mainPath)
-        {
-            string[] tokens = mainPath.Split(new[] { @"\" }, StringSplitOptions.None);
-            string pathToRead = tokens[tokens.Length - 1];
-            Console.WriteLine("Reading " + pathToRead + "...");
+            string[] tokens = fullPath.Split(new[] { @"\" }, StringSplitOptions.None);
+            return tokens[tokens.Length - 2];
         }
     }
 }

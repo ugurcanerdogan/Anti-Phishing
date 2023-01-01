@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using Accord.Statistics.Filters;
 using System.Data;
+using Accord.MachineLearning;
 
 namespace PH
 {
@@ -13,40 +14,38 @@ namespace PH
     {
         static void Main(string[] args)
         {
-            //string trainPath = @"..\phishIRIS_DL_Dataset\train\";
-            //string validPath = @"..\phishIRIS_DL_Dataset\valid\";
-
-            //Tuple<List<string>, List<string>> trainImagePathsAndLabels = Helpers.ProcessDirectory(trainPath);
-            //Tuple<List<string>, List<string>> validImagePathsAndLabels = Helpers.ProcessDirectory(valPath);
-            //Console.WriteLine(Helpers.ReadFromCSV(@"precomputed_CEDD_val.csv").Item2[999]); 
-
-            ////
-
             string mainPath = Helpers.CheckDirectory(args[Array.IndexOf(args, "-dataset") + 1]);
-            Helpers.PrintMainPath(mainPath);
-
             string trainPath = Helpers.CheckDirectory(mainPath + @"\train\");
             string valPath = Helpers.CheckDirectory(mainPath + @"\val\");
 
             string mode = Helpers.CheckMode(args[Array.IndexOf(args, "-mode") + 1]);
+            switch (mode)
+            {
+                case "precompute":
+                    Helpers.PrintMainPath(mainPath);
 
-            Tuple<List<string>, List<string>> trainImagePathsAndLabels = Helpers.ProcessDirectory(trainPath, "train");
-            Tuple<List<string>, List<string>> validImagePathsAndLabels = Helpers.ProcessDirectory(valPath, "val");
-            Console.WriteLine("{0} classes exist on the train set", trainImagePathsAndLabels.Item2.Distinct().Count() - 1);
+                    Tuple<List<string>, List<string>> trainImagePathsAndLabels = Helpers.ProcessDirectory(trainPath, "train");
+                    Tuple<List<string>, List<string>> validImagePathsAndLabels = Helpers.ProcessDirectory(valPath, "val");
+                    Console.WriteLine("{0} classes exist on the train set", trainImagePathsAndLabels.Item2.Distinct().Count() - 1);
 
-            Descriptors descriptors = new Descriptors();
+                    DescriptorBase descriptorBaseObj = new DescriptorBase();
 
-            // FCTH 
-            List<double[]> fcthTrainValues = descriptors.ComputeFCTHandSave(trainImagePathsAndLabels.Item1, "train");
-            List<double[]> fcthValValues = descriptors.ComputeFCTHandSave(validImagePathsAndLabels.Item1, "val");
+                    // FCTH 
+                    //descriptorBaseObj.ComputeFCTHandSave(trainImagePathsAndLabels.Item1, "train");
+                    //descriptorBaseObj.ComputeFCTHandSave(validImagePathsAndLabels.Item1, "val");
 
-            // CEDD 
-            List<double[]> ceddTrainValues = descriptors.ComputeCEDDandSave(trainImagePathsAndLabels.Item1, "train");
-            List<double[]> ceddValValues = descriptors.ComputeCEDDandSave(validImagePathsAndLabels.Item1, "val");
+                    // CEDD 
+                    //descriptorBaseObj.ComputeCEDDandSave(trainImagePathsAndLabels.Item1, "train");
+                    //descriptorBaseObj.ComputeCEDDandSave(validImagePathsAndLabels.Item1, "val");
 
-            // SURF 
-            double[,] surfTrainValues = descriptors.ComputeSURFandSave(trainImagePathsAndLabels.Item1, "train");
-            double[,] surfValValues = descriptors.ComputeSURFandSave(validImagePathsAndLabels.Item1, "val");
+                    // SURF 
+                    Tuple<double[,], KMeansClusterCollection> BOWVandKmeansForSURF = descriptorBaseObj.ComputeSURFForTrainSetandSave(trainImagePathsAndLabels.Item1);
+                    descriptorBaseObj.ComputeSURFForTestSetandSave(validImagePathsAndLabels.Item1, BOWVandKmeansForSURF.Item2);
+                    break;
+                case "trainval":
+
+                    break;
+            }
 
             Console.WriteLine("---");
             Console.ReadLine();

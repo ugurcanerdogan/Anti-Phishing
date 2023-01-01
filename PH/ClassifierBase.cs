@@ -14,13 +14,13 @@ using System.Threading.Tasks;
 
 namespace PH
 {
-    public class Classifiers
+    public class ClassifierBase
     {
         MulticlassSupportVectorLearning<Linear> SVM;
         RandomForestLearning RF;
         C45Learning C45;
 
-        public Classifiers()
+        public ClassifierBase()
         {
             // SVM 
             SVM = new MulticlassSupportVectorLearning<Linear>()
@@ -54,7 +54,6 @@ namespace PH
             return predicted;
         }
 
-
         public RandomForest RFFit(double[][] trainX, int[] trainY)
         {
             var rf = RF.Learn(trainX, trainY);
@@ -87,7 +86,6 @@ namespace PH
 
         public static int[] EncodeLabels(List<string> y)
         {
-
             //DataTable table = new DataTable("Labels");
             //table.Columns.Add("Label", typeof(string));
             //foreach (string item in y)
