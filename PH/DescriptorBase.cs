@@ -196,10 +196,10 @@ namespace PH
                 }
             }
 
-            return NormalizeBoWV(totalFeatures);
+            return NormalizeBoVW(totalFeatures);
         }
 
-        public static double[,] NormalizeBoWV(int[,] totalFeatures)
+        public static double[,] NormalizeBoVW(int[,] totalFeatures)
         {
             // Create the aforementioned sample table
             DataTable table = new DataTable("Data to Normalize");
