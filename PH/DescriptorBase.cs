@@ -25,6 +25,7 @@ namespace PH
             cedd = new CEDD_Descriptor.CEDD();
             surf = new SpeededUpRobustFeaturesDetector();
             kmeans = new KMeans(k: 400);
+
         }
 
         public List<double[]> ComputeFCTHandSave(List<string> imagePaths, string fileType)
@@ -32,7 +33,7 @@ namespace PH
             List<double[]> fcthList = new List<double[]>();
             Console.WriteLine("FCTH features are being extracted for {0}...", fileType);
             string fileName = @"pre-computed\precomputed_FCTH_" + fileType + ".csv";
-            Helpers.WriteHeaderToCSV(fileName, 144);
+            Helpers.WriteHeaderToCSV(fileName, 192);
 
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
@@ -59,7 +60,7 @@ namespace PH
             List<double[]> ceddList = new List<double[]>();
             Console.WriteLine("CEDD features are being extracted for {0}...", fileType);
             string fileName = @"pre-computed\precomputed_CEDD_" + fileType + ".csv";
-            Helpers.WriteHeaderToCSV(fileName, 192);
+            Helpers.WriteHeaderToCSV(fileName, 144);
 
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
@@ -81,7 +82,7 @@ namespace PH
             return ceddList;
         }
 
-        public Tuple<double[,], KMeansClusterCollection> ComputeSURFForTrainSetandSave(List<string> trainImagePaths)
+        public Tuple<double[,], KMeansClusterCollection> ComputeSURFForTrainSet(List<string> trainImagePaths, bool saveToCSV)
         {
             List<double[]> vStackedTrainDescriptors = new List<double[]>();
             List<double[][]> trainDescriptors = new List<double[][]>();
@@ -112,18 +113,19 @@ namespace PH
             }
             KMeansClusterCollection kmeans = ClusterDescriptors(vStackedTrainDescriptors.ToArray());
             double[,] allTrainFeaturesBoVW = ExtractFeatures(kmeans, trainDescriptors, imgCount);
-            int labelCtr = 0;
-            for (int i = 0; i < allTrainFeaturesBoVW.GetLength(0); i++)
+            if (saveToCSV)
             {
-                Helpers.SaveArrayAsCSV(allTrainFeaturesBoVW.GetRow(i), fileName, trainLabels[labelCtr]);
-                labelCtr++;
+                int labelCtr = 0;
+                for (int i = 0; i < allTrainFeaturesBoVW.GetLength(0); i++)
+                {
+                    Helpers.SaveArrayAsCSV(allTrainFeaturesBoVW.GetRow(i), fileName, trainLabels[labelCtr]);
+                    labelCtr++;
+                }
+                stopWatch.Stop();
+                TimeSpan ts = stopWatch.Elapsed;
+                double elapsedTime = Math.Round(ts.TotalSeconds, 2);
+                Console.WriteLine("Done. precomputed_SURF_train.csv is regenerated in {0} seconds", elapsedTime);
             }
-
-            stopWatch.Stop();
-            TimeSpan ts = stopWatch.Elapsed;
-            double elapsedTime = Math.Round(ts.TotalSeconds, 2);
-            Console.WriteLine("Done. precomputed_SURF_train.csv is regenerated in {0} seconds", elapsedTime);
-
             return Tuple.Create(allTrainFeaturesBoVW,kmeans);
         }
 
@@ -171,7 +173,7 @@ namespace PH
             return allValFeaturesBoVW;
         }
 
-        public KMeansClusterCollection ClusterDescriptors(double[][] input)
+        public  KMeansClusterCollection ClusterDescriptors(double[][] input)
         {
             // Compute and retrieve the data centroids
             // quantization
@@ -181,7 +183,7 @@ namespace PH
             return clusters;
         }
 
-        public double[,] ExtractFeatures(KMeansClusterCollection kmeans, List<double[][]> descriptors, int imageCount)
+        public static double[,] ExtractFeatures(KMeansClusterCollection kmeans, List<double[][]> descriptors, int imageCount)
         {
             int[,] totalFeatures = new int[imageCount,400];
 
@@ -197,6 +199,55 @@ namespace PH
             }
 
             return NormalizeBoVW(totalFeatures);
+        }
+
+        public void CalculateForMissingDescriptorFiles(Tuple<List<string>, List<string>> trainImagePathsAndLabels, Tuple<List<string>, List<string>> valImagePathsAndLabels)
+        {
+            string[] missingPrecomputedFiles = Helpers.findMissingPrecomputedFiles();
+            string surfIndicator = "";
+            foreach (string item in missingPrecomputedFiles)
+            {
+                string splittedPath = item.Split(new[] { @"\" }, StringSplitOptions.None)[1];
+                if (splittedPath.Contains("CEDD_train"))
+                {
+                    ComputeCEDDandSave(trainImagePathsAndLabels.Item1, "train");
+                }
+                else if (splittedPath.Contains("CEDD_val"))
+                {
+                    ComputeCEDDandSave(valImagePathsAndLabels.Item1, "val");
+                }
+                else if (splittedPath.Contains("FCTH_train"))
+                {
+                    ComputeFCTHandSave(trainImagePathsAndLabels.Item1, "train");
+                }
+                else if (splittedPath.Contains("FCTH_val"))
+                {
+                    ComputeFCTHandSave(valImagePathsAndLabels.Item1, "val");
+                }
+                else if (splittedPath.Contains("SURF_train"))
+                {
+                    surfIndicator += "train";
+                }
+                else if (splittedPath.Contains("SURF_val"))
+                {
+                    surfIndicator += "val";
+                }
+            }
+
+            if (surfIndicator.Contains("trainval"))
+            {
+                Tuple<double[,], KMeansClusterCollection> BOWVandKmeansForSURF = ComputeSURFForTrainSet(trainImagePathsAndLabels.Item1, true);
+                ComputeSURFForTestSetandSave(valImagePathsAndLabels.Item1, BOWVandKmeansForSURF.Item2);
+            }
+            else if (surfIndicator.Contains("train"))
+            {
+                ComputeSURFForTrainSet(trainImagePathsAndLabels.Item1, true);
+            }
+            else if (surfIndicator.Contains("val"))
+            {
+                Tuple<double[,], KMeansClusterCollection> BOWVandKmeansForSURF = ComputeSURFForTrainSet(trainImagePathsAndLabels.Item1, false);
+                ComputeSURFForTestSetandSave(valImagePathsAndLabels.Item1, BOWVandKmeansForSURF.Item2);
+            }
         }
 
         public static double[,] NormalizeBoVW(int[,] totalFeatures)

@@ -41,7 +41,7 @@ namespace PH
             }
         }
 
-        public static Tuple<List<string>, List<string>> ProcessDirectory(string path, string folderType)
+        public static Tuple<List<string>, List<string>> ProcessDirectory(string path, string folderType, bool printToConsole=true)
         {
             List<string> imagePaths = new List<string>();
             List<string> imageLabels = new List<string>();
@@ -55,19 +55,58 @@ namespace PH
                     string[] fileEntries = Directory.GetFiles(subdirectory);
                     foreach (string fileName in fileEntries)
                     {
-                        //Console.WriteLine("Processed file '{0}'.", fileName);
                         imagePaths.Add(fileName);
-                        //Console.WriteLine(GetLabel(fileName));
                         imageLabels.Add(GetLabel(fileName));
                     }
                 }
             }
             else
             {
-                //Console.WriteLine("{0} is not a valid file or directory.", path);
+                Console.WriteLine("{0} is not a valid file or directory.", path);
             }
-            Console.WriteLine("{0} images were found in {1} folder", imagePaths.Count, folderType);
+
+            if(printToConsole)
+                Console.WriteLine("{0} images were found in {1} folder", imagePaths.Count, folderType);
+
             return Tuple.Create(imagePaths, imageLabels);
+        }
+
+        public static string[] findMissingPrecomputedFiles()
+        {
+            string[] preComputedFiles = { 
+                @"pre-computed\precomputed_CEDD_train.csv",
+                @"pre-computed\precomputed_CEDD_val.csv",
+                @"pre-computed\precomputed_FCTH_train.csv",
+                @"pre-computed\precomputed_FCTH_val.csv",
+                @"pre-computed\precomputed_SURF_train.csv",
+                @"pre-computed\precomputed_SURF_val.csv" };
+
+            string[] fileEntries = { };
+            string[] missingPrecomputedFiles = { };
+            if (Directory.Exists("pre-computed"))
+            {
+                Console.WriteLine("'Pre-computed' folder found.");
+                fileEntries = Directory.GetFiles("pre-computed");
+                missingPrecomputedFiles = preComputedFiles.Except(fileEntries).ToArray();
+                if(missingPrecomputedFiles.Length != 0)
+                {
+                    foreach (string missingFile in missingPrecomputedFiles)
+                    {
+                        Console.WriteLine("File: {0} not found!", missingFile);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("No missing CSV files.");
+                }
+            }
+            else
+            {
+                Console.WriteLine("'Pre-computed' folder not found!");
+                Directory.CreateDirectory("pre-computed");
+                return preComputedFiles;
+            }
+            return missingPrecomputedFiles;
         }
 
         public static void SaveArrayAsCSV(Array imgDescArray, string csvFileName, string label)
@@ -106,29 +145,31 @@ namespace PH
             }
         }
 
-        public static Tuple<List<List<double>>, List<string>> ReadFromCSV(string path)
+        public static Tuple<double[][], string[]> ReadFromCSV(string path)
         {
-            List<List<double>> sampleList = new List<List<double>>();
-            List<string> labelList = new List<string>();
-
             string[] lines = File.ReadAllLines(path);
-            foreach (string line in lines)
-            {
-                List<double> columnList = new List<double>();
+            double[][] sampleList = new double[lines.Length-1][];
+            string[] labelList = new string[lines.Length-1];
 
+            //start from 1 to skip header
+            for (int i = 1; i < lines.Length; i++)
+            {
+                string line = lines[i];
                 string[] columns = line.Split(',');
-                foreach (string column in columns)
+                double[] featureList = new double[columns.Length-1];
+                for (int j = 0; j < columns.Length; j++)
                 {
+                    string column = columns[j];
                     try
                     {
-                        columnList.Add(Convert.ToDouble(column));
+                        featureList[j] = Convert.ToDouble(column);
                     }
                     catch (FormatException fe)
                     {
-                        labelList.Add(column);
+                        labelList[i-1] = column;
                     }
                 }
-                sampleList.Add(columnList);
+                sampleList[i-1] = featureList;
             }
             return Tuple.Create(sampleList, labelList);
         }
@@ -140,9 +181,6 @@ namespace PH
             foreach (string path in pathList)
             {
                 labels.Add(GetLabel(path));
-
-                //Console.WriteLine(GetLabel(path)); 
-                //Console.WriteLine("Processed file '{0}'.", path);
             }
 
             return labels;
