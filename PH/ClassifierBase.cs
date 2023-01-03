@@ -13,17 +13,10 @@ namespace PH
 {
     public class ClassifierBase
     {
-        MulticlassSupportVectorLearning<Linear> SVM;
-        RandomForestLearning RF;
-        C45Learning C45;
 
-        public ClassifierBase()
+        public static MulticlassSupportVectorMachine<Linear> SVMFit(double[][] trainX, int[] trainY)
         {
-        }
-
-        public MulticlassSupportVectorMachine<Linear> SVMFit(double[][] trainX, int[] trainY)
-        {
-            SVM = new MulticlassSupportVectorLearning<Linear>()
+            MulticlassSupportVectorLearning<Linear> SVM = new MulticlassSupportVectorLearning<Linear>()
             {
                 // using LIBLINEAR's L2-loss SVC dual for each SVM
                 Learner = (p) => new LinearDualCoordinateDescent()
@@ -35,15 +28,15 @@ namespace PH
             return svm;
         }
 
-        public int[] SVMPredict(double[][] testX, MulticlassSupportVectorMachine<Linear> svm)
+        public static int[] SVMPredict(double[][] testX, MulticlassSupportVectorMachine<Linear> svm)
         {
             int[] predicted = svm.Decide(testX);
             return predicted;
         }
 
-        public RandomForest RFFit(double[][] trainX, int[] trainY)
+        public static RandomForest RFFit(double[][] trainX, int[] trainY)
         {
-            RF = new RandomForestLearning()
+            RandomForestLearning RF = new RandomForestLearning()
             {
                 NumberOfTrees = 10, // use 10 trees in the forest
             };
@@ -52,20 +45,20 @@ namespace PH
             return rf;
         }
 
-        public int[] RFPredict(double[][] testX, RandomForest rf)
+        public static int[] RFPredict(double[][] testX, RandomForest rf)
         {
             int[] predicted = rf.Decide(testX);
             return predicted;
         }
 
-        public DecisionTree C45Fit(double[][] trainX, int[] trainY)
+        public static DecisionTree C45Fit(double[][] trainX, int[] trainY)
         {
-            C45 = new C45Learning();
+            C45Learning C45 = new C45Learning();
             var c45 = C45.Learn(trainX, trainY);
             return c45;
         }
 
-        public int[] C45Predict(double[][] testX, DecisionTree c45)
+        public static int[] C45Predict(double[][] testX, DecisionTree c45)
         {
             int[] predicted = c45.Decide(testX);
             return predicted;

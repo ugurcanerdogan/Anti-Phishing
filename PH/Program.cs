@@ -42,11 +42,12 @@ namespace PH
                     descriptorBaseObj.ComputeCEDDandSave(valImagePathsAndLabels.Item1, "val");
 
                     // SURF 
-                    //Tuple<double[,], KMeansClusterCollection> BOWVandKmeansForSURF = descriptorBaseObj.ComputeSURFForTrainSet(trainImagePathsAndLabels.Item1, true);
-                    //descriptorBaseObj.ComputeSURFForTestSetandSave(valImagePathsAndLabels.Item1, BOWVandKmeansForSURF.Item2);
-                    break;
+                    Tuple<double[,], KMeansClusterCollection> BOWVandKmeansForSURF = descriptorBaseObj.ComputeSURFForTrainSet(trainImagePathsAndLabels.Item1, true);
+                    descriptorBaseObj.ComputeSURFForTestSetandSave(valImagePathsAndLabels.Item1, BOWVandKmeansForSURF.Item2);
+                    Console.WriteLine("-----------------------------");
+                //    break;
 
-                case "trainval":
+                //case "trainval":
                     descriptorBaseObj.CalculateForMissingDescriptorFiles(Helpers.ProcessDirectory(trainPath, "train", false), Helpers.ProcessDirectory(valPath, "val", false));
 
                     Tuple<double[][], string[]> FCTHTrainData = Helpers.ReadFromCSV(@"pre-computed\precomputed_FCTH_train.csv");
@@ -60,34 +61,27 @@ namespace PH
 
                     ClassifierBase classifierBase = new ClassifierBase();
 
-                    //
-
                     double[][] ProcessedXTrain = ClassifierBase.DeleteColumnsWithZeroRange(FCTHTrainData.Item1);
                     double[][] ProcessedXVal = ClassifierBase.DeleteColumnsWithZeroRange(FCTHValData.Item1);
                     int[] encodedTrainLabels = ClassifierBase.EncodeLabels(FCTHTrainData.Item2);
                     int[] encodedValLabels = ClassifierBase.EncodeLabels(FCTHValData.Item2);
-
                     Console.WriteLine("Training with precomputed_FCTH_train.csv");
                     Stopwatch stopWatch1 = new Stopwatch();
                     stopWatch1.Start();
-                    RandomForest rf = classifierBase.RFFit(ProcessedXTrain, encodedTrainLabels);
-                    MulticlassSupportVectorMachine<Linear> svm = classifierBase.SVMFit(FCTHTrainData.Item1, encodedTrainLabels);
-                    DecisionTree c45 = classifierBase.C45Fit(ProcessedXTrain, encodedTrainLabels);
+                    RandomForest rf = ClassifierBase.RFFit(ProcessedXTrain, encodedTrainLabels);
+                    MulticlassSupportVectorMachine<Linear> svm = ClassifierBase.SVMFit(FCTHTrainData.Item1, encodedTrainLabels);
+                    DecisionTree c45 = ClassifierBase.C45Fit(ProcessedXTrain, encodedTrainLabels);
                     stopWatch1.Stop();
                     TimeSpan ts1 = stopWatch1.Elapsed;
                     double elapsedTime1 = Math.Round(ts1.TotalSeconds, 2);
                     Console.WriteLine("Done in {0} seconds", elapsedTime1);
-
                     Console.WriteLine("Testing with precomputed_FCTH_val.csv {0} samples", FCTHValData.Item2.Length);
-                    int[] predictedRF = classifierBase.RFPredict(ProcessedXVal, rf);
-                    int[] predictedSVM = classifierBase.SVMPredict(FCTHValData.Item1, svm);
-                    int[] predictedC45 = classifierBase.C45Predict(ProcessedXVal, c45);
+                    int[] predictedRF = ClassifierBase.RFPredict(ProcessedXVal, rf);
+                    int[] predictedSVM = ClassifierBase.SVMPredict(FCTHValData.Item1, svm);
+                    int[] predictedC45 = ClassifierBase.C45Predict(ProcessedXVal, c45);
                     ClassifierBase.ComputeMetrics("Random Forest", predictedRF, encodedValLabels);
                     ClassifierBase.ComputeMetrics("SVM", predictedSVM, encodedValLabels);
                     ClassifierBase.ComputeMetrics("C4.5", predictedC45, encodedValLabels);
-
-                    //
-                    //
 
                     ProcessedXTrain = ClassifierBase.DeleteColumnsWithZeroRange(CEDDTrainData.Item1);
                     ProcessedXVal = ClassifierBase.DeleteColumnsWithZeroRange(CEDDValData.Item1);
@@ -97,23 +91,20 @@ namespace PH
                     Console.WriteLine("Training with precomputed_CEDD_train.csv");
                     Stopwatch stopWatch2 = new Stopwatch();
                     stopWatch2.Start();
-                    rf = classifierBase.RFFit(ProcessedXTrain, encodedTrainLabels);
-                    svm = classifierBase.SVMFit(CEDDTrainData.Item1, encodedTrainLabels);
-                    c45 = classifierBase.C45Fit(ProcessedXTrain, encodedTrainLabels);
+                    rf = ClassifierBase.RFFit(ProcessedXTrain, encodedTrainLabels);
+                    svm = ClassifierBase.SVMFit(CEDDTrainData.Item1, encodedTrainLabels);
+                    c45 = ClassifierBase.C45Fit(ProcessedXTrain, encodedTrainLabels);
                     stopWatch2.Stop();
                     TimeSpan ts2 = stopWatch2.Elapsed;
                     double elapsedTime2 = Math.Round(ts2.TotalSeconds, 2);
                     Console.WriteLine("Done in {0} seconds", elapsedTime2);
                     Console.WriteLine("Testing with precomputed_CEDD_val.csv {0} samples", CEDDValData.Item2.Length);
-                    predictedRF = classifierBase.RFPredict(ProcessedXVal, rf);
-                    predictedSVM = classifierBase.SVMPredict(CEDDValData.Item1, svm);
-                    predictedC45 = classifierBase.C45Predict(ProcessedXVal, c45);
+                    predictedRF = ClassifierBase.RFPredict(ProcessedXVal, rf);
+                    predictedSVM = ClassifierBase.SVMPredict(CEDDValData.Item1, svm);
+                    predictedC45 = ClassifierBase.C45Predict(ProcessedXVal, c45);
                     ClassifierBase.ComputeMetrics("Random Forest", predictedRF, encodedValLabels);
                     ClassifierBase.ComputeMetrics("SVM", predictedSVM, encodedValLabels);
                     ClassifierBase.ComputeMetrics("C4.5", predictedC45, encodedValLabels);
-
-                    //
-                    //
 
                     ProcessedXTrain = ClassifierBase.DeleteColumnsWithZeroRange(SURFTrainData.Item1);
                     ProcessedXVal = ClassifierBase.DeleteColumnsWithZeroRange(SURFValData.Item1);
@@ -123,26 +114,27 @@ namespace PH
                     Console.WriteLine("Training with precomputed_SURF_train.csv");
                     Stopwatch stopWatch3 = new Stopwatch();
                     stopWatch3.Start();
-                    rf = classifierBase.RFFit(ProcessedXTrain, encodedTrainLabels);
-                    svm = classifierBase.SVMFit(SURFTrainData.Item1, encodedTrainLabels);
-                    c45 = classifierBase.C45Fit(ProcessedXTrain, encodedTrainLabels);
+                    rf = ClassifierBase.RFFit(ProcessedXTrain, encodedTrainLabels);
+                    svm = ClassifierBase.SVMFit(SURFTrainData.Item1, encodedTrainLabels);
+                    c45 = ClassifierBase.C45Fit(ProcessedXTrain, encodedTrainLabels);
                     stopWatch3.Stop();
                     TimeSpan ts3 = stopWatch3.Elapsed;
                     double elapsedTime3 = Math.Round(ts3.TotalSeconds, 2);
                     Console.WriteLine("Done in {0} seconds", elapsedTime3);
                     Console.WriteLine("Testing with precomputed_SURF_val.csv {0} samples", SURFValData.Item2.Length);
-                    predictedRF = classifierBase.RFPredict(ProcessedXVal, rf);
-                    predictedSVM = classifierBase.SVMPredict(SURFValData.Item1, svm);
-                    predictedC45 = classifierBase.C45Predict(ProcessedXVal, c45);
+                    predictedRF = ClassifierBase.RFPredict(ProcessedXVal, rf);
+                    predictedSVM = ClassifierBase.SVMPredict(SURFValData.Item1, svm);
+                    predictedC45 = ClassifierBase.C45Predict(ProcessedXVal, c45);
                     ClassifierBase.ComputeMetrics("Random Forest", predictedRF, encodedValLabels);
                     ClassifierBase.ComputeMetrics("SVM", predictedSVM, encodedValLabels);
                     ClassifierBase.ComputeMetrics("C4.5", predictedC45, encodedValLabels);
-
+                    Console.WriteLine("Program finished.");
+                    Console.ReadLine();
                     break;
             }
 
-            Console.WriteLine("---");
-            Console.ReadLine();
+            //Console.WriteLine("Program finished.");
+            //Console.ReadLine();
         }
     }
 }

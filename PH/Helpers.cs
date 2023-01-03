@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
-using System.Drawing;
 using System.Globalization;
 
 namespace PH
@@ -174,17 +171,6 @@ namespace PH
             return Tuple.Create(sampleList, labelList);
         }
 
-        public static List<string> GetLabelList(List<string> pathList)
-        {
-            Console.WriteLine("-----------------------------------");
-            List<string> labels = new List<string>();
-            foreach (string path in pathList)
-            {
-                labels.Add(GetLabel(path));
-            }
-
-            return labels;
-        }
         public static string GetLabel(string fullPath)
         {
             string[] tokens = fullPath.Split(new[] { @"\" }, StringSplitOptions.None);
