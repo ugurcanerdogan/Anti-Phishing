@@ -38,7 +38,7 @@ namespace PH
         {
             RandomForestLearning RF = new RandomForestLearning()
             {
-                NumberOfTrees = 10, // use 10 trees in the forest
+                NumberOfTrees = 10
             };
 
             var rf = RF.Learn(trainX, trainY);
@@ -135,7 +135,7 @@ namespace PH
         {
             List<int> indicesToDrop = new List<int>();
             IList<DecisionVariable> list1 = (IList<DecisionVariable>)DecisionVariable.FromData(inputArr);
-            for(int i = 0; i < inputArr[0].Length; i++)
+            for (int i = 0; i < inputArr[0].Length; i++)
             {
                 if (list1[i].Range.Length == 0)
                 {

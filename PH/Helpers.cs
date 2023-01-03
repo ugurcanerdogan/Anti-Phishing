@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.IO;
 using System.Globalization;
+using System.IO;
+using System.Linq;
 
 namespace PH
 {
@@ -38,7 +38,7 @@ namespace PH
             }
         }
 
-        public static Tuple<List<string>, List<string>> ProcessDirectory(string path, string folderType, bool printToConsole=true)
+        public static Tuple<List<string>, List<string>> ProcessDirectory(string path, string folderType, bool printToConsole = true)
         {
             List<string> imagePaths = new List<string>();
             List<string> imageLabels = new List<string>();
@@ -62,7 +62,7 @@ namespace PH
                 Console.WriteLine("{0} is not a valid file or directory.", path);
             }
 
-            if(printToConsole)
+            if (printToConsole)
                 Console.WriteLine("{0} images were found in {1} folder", imagePaths.Count, folderType);
 
             return Tuple.Create(imagePaths, imageLabels);
@@ -70,7 +70,7 @@ namespace PH
 
         public static string[] findMissingPrecomputedFiles()
         {
-            string[] preComputedFiles = { 
+            string[] preComputedFiles = {
                 @"pre-computed\precomputed_CEDD_train.csv",
                 @"pre-computed\precomputed_CEDD_val.csv",
                 @"pre-computed\precomputed_FCTH_train.csv",
@@ -85,7 +85,7 @@ namespace PH
                 Console.WriteLine("'Pre-computed' folder found.");
                 fileEntries = Directory.GetFiles("pre-computed");
                 missingPrecomputedFiles = preComputedFiles.Except(fileEntries).ToArray();
-                if(missingPrecomputedFiles.Length != 0)
+                if (missingPrecomputedFiles.Length != 0)
                 {
                     foreach (string missingFile in missingPrecomputedFiles)
                     {
@@ -145,15 +145,15 @@ namespace PH
         public static Tuple<double[][], string[]> ReadFromCSV(string path)
         {
             string[] lines = File.ReadAllLines(path);
-            double[][] sampleList = new double[lines.Length-1][];
-            string[] labelList = new string[lines.Length-1];
+            double[][] sampleList = new double[lines.Length - 1][];
+            string[] labelList = new string[lines.Length - 1];
 
-            //start from 1 to skip header
+            // Start from 1 to skip header.
             for (int i = 1; i < lines.Length; i++)
             {
                 string line = lines[i];
                 string[] columns = line.Split(',');
-                double[] featureList = new double[columns.Length-1];
+                double[] featureList = new double[columns.Length - 1];
                 for (int j = 0; j < columns.Length; j++)
                 {
                     string column = columns[j];
@@ -163,10 +163,10 @@ namespace PH
                     }
                     catch (FormatException fe)
                     {
-                        labelList[i-1] = column;
+                        labelList[i - 1] = column;
                     }
                 }
-                sampleList[i-1] = featureList;
+                sampleList[i - 1] = featureList;
             }
             return Tuple.Create(sampleList, labelList);
         }

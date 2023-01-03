@@ -1,19 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Text;
-using System.Diagnostics;
-using System.Threading.Tasks;
-using Accord.Imaging;
-using Accord.Math;
+﻿using Accord.Imaging;
 using Accord.MachineLearning;
+using Accord.Math;
 using Accord.Statistics.Filters;
+using System;
+using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
+using System.Drawing;
 
 namespace PH
 {
     public class DescriptorBase
-    {        
+    {
         FCTH_Descriptor.FCTH fcth;
         CEDD_Descriptor.CEDD cedd;
         SpeededUpRobustFeaturesDetector surf;
@@ -21,7 +19,7 @@ namespace PH
 
         public DescriptorBase()
         {
-            fcth = new FCTH_Descriptor.FCTH();            
+            fcth = new FCTH_Descriptor.FCTH();
             cedd = new CEDD_Descriptor.CEDD();
             surf = new SpeededUpRobustFeaturesDetector();
             kmeans = new KMeans(k: 400);
@@ -126,7 +124,7 @@ namespace PH
                 double elapsedTime = Math.Round(ts.TotalSeconds, 2);
                 Console.WriteLine("Done. precomputed_SURF_train.csv is regenerated in {0} seconds", elapsedTime);
             }
-            return Tuple.Create(allTrainFeaturesBoVW,kmeans);
+            return Tuple.Create(allTrainFeaturesBoVW, kmeans);
         }
 
         public double[,] ComputeSURFForTestSetandSave(List<string> valImagePaths, KMeansClusterCollection kmeans)
@@ -153,7 +151,7 @@ namespace PH
                 double[][] surfTable = descriptors.Apply(d => d.Descriptor);
                 valDescriptors.Add(surfTable);
 
-                foreach (double[] item in surfTable) //vstack
+                foreach (double[] item in surfTable) // VSTACK OPERATION
                 {
                     vStackedTestDescriptors.Add(item);
                 }
@@ -173,28 +171,25 @@ namespace PH
             return allValFeaturesBoVW;
         }
 
-        public  KMeansClusterCollection ClusterDescriptors(double[][] input)
+        public KMeansClusterCollection ClusterDescriptors(double[][] input)
         {
             // Compute and retrieve the data centroids
-            // quantization
             KMeansClusterCollection clusters = kmeans.Learn(input);
-            // Use the centroids to parition all the data
-            // // // int[] labels = clusters.Decide(input);
             return clusters;
         }
 
         public static double[,] ExtractFeatures(KMeansClusterCollection kmeans, List<double[][]> descriptors, int imageCount)
         {
-            int[,] totalFeatures = new int[imageCount,400];
+            int[,] totalFeatures = new int[imageCount, 400];
 
             for (int i = 0; i < imageCount; i++)
             {
                 for (int j = 0; j < descriptors[i].Length; j++)
                 {
                     var feature = descriptors[i][j];
-                    int idx = kmeans.Decide(feature);
-                    //POOLING
-                    totalFeatures[i, idx] += 1;
+                    int idx = kmeans.Decide(feature); // QUANTIZATION
+                    totalFeatures[i, idx] += 1; // POOLING
+
                 }
             }
 
@@ -252,9 +247,9 @@ namespace PH
 
         public static double[,] NormalizeBoVW(int[,] totalFeatures)
         {
-            // Create the aforementioned sample table
             DataTable table = new DataTable("Data to Normalize");
 
+            // Convert  2D array to DataTable.
             for (int i = 1; i < 401; i++)
             {
                 string columnName = "f" + i.ToString();
@@ -272,15 +267,11 @@ namespace PH
                 table.Rows.Add(row);
             }
 
-            // The filter will ignore non-real (continuous) data
+            // NORMALIZATION
             Normalization normalization = new Normalization(table);
-
-            // Now we can process another table at once:
             DataTable result = normalization.Apply(table);
 
-            // The result will be a table with the same columns, but
-            // in which any column named "Age" will have been normalized
-            // using the previously detected mean and standard deviation:
+            // Convert DataTable to 2D array.
             double[,] normalizedArray = new double[result.Rows.Count, result.Columns.Count];
 
             for (int rowIndex = 0; rowIndex < result.Rows.Count; rowIndex++)
